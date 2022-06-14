@@ -24,14 +24,16 @@ const profileDataArgs = process.argv.slice(2);
 
 */
 
-const { link } = require("fs");
 const inquirer = require("inquirer");
+
 //accesses the file system, or fs module.
-const fs = require("fs");
+//don't need this anymore since we movied to generate-site.js
+//const fs = require("fs");
+
 // //grabs the page-template function - generate page
 const generatePage = require("./src/page-template.js");
 
-
+const {writeFile, copyFile} = require("./utils/generate-site.js");
 
 //function to prompt user
 const promptUser = () => {
@@ -58,18 +60,6 @@ const promptUser = () => {
         }, 
         {
             type: "input",
-            name: 'about',
-            message: "Please provide some information about yourself.",
-            when: ({ confirmAbout }) => {
-                if (confirmAbout ) {
-                    return true;
-                } else {
-                    return false;
-                }
-            }
-        },
-        {
-            type: "input",
             name: "github",
             message: "Enter your Github username:",
             validate: githubInput => {
@@ -84,7 +74,9 @@ const promptUser = () => {
         {
             type: "input",
             name: "about",
-            message: "Provide some information about yourself:"
+            message: "Provide some information about yourself:",
+            when: ({ confirmAbout }) => confirmAbout
+    
         }
     ]);
 };
@@ -172,12 +164,35 @@ const promptProject = portfolioData => {
 promptUser()
     .then(promptProject)
     .then(portfolioData => {
-        const pageHTML = generatePage(portfolioData);
-
-        // //creates a file using the generatePage function
-        fs.writeFile('./index.html', pageHTML, err => {
-            if (err) throw new Error(err);
-
-            console.log("Page created! Check out index.html in this directory to see the output!");
-        });
+        return generatePage(portfolioData);
+    })
+    .then (pageHTML => {
+        return writeFile(pageHTML);
+    })
+    .then(writeFileReponse => {
+        console.log(writeFileReponse);
+        return copyFile();
+    })
+    .then(copyFileResponse => {
+        console.log(copyFileResponse);
+    })
+    .catch(err => {
+        console.log(err);
     });
+
+        // // //creates a file using the generatePage function
+        // fs.writeFile('./dist/index.html', pageHTML, err => {
+        //     if (err) throw new Error(err);
+
+        //     console.log("Page created! Check out index.html in this directory to see the output!");
+
+        //     fs.copyFile('./src/style.css', './dist/style.css', err => {
+        //         if (err) {
+        //             console.log(err);
+        //             return;
+        //         }
+        //         console.log("style sheet copied successfully!");
+        //     });
+        // });
+
+     
